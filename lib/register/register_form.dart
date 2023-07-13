@@ -23,33 +23,71 @@ class _RegisterFormState extends State<RegisterForm> {
   final _companyNameController = TextEditingController();
 
   Future<void> _register() async {
-   final response = await http.post(
- Uri.parse(dotenv.env['API_URL_REG']!),
-  headers: <String, String>{
-    'Content-Type': 'application/json; charset=UTF-8',
-    'Authorization': 'Bearer ${dotenv.env['BEARER_TOKEN']}',
-  },
+    final userResponse = await http.post(
+      Uri.parse(dotenv.env['API_URL_REG']!),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer ${dotenv.env['BEARER_TOKEN']}',
+      },
       body: jsonEncode(<String, dynamic>{
-        'username': _usernameController.text,
-        'email': _emailController.text,
-        'password': _passwordController.text,
-        'accountType': _accountTypeController.text,
-        'description': _descriptionController.text,
-        if (_accountTypeController.text == 'developer') ...{
-          'nick': _nickController.text,
-          'firstName': _firstNameController.text,
-          'lastName': _lastNameController.text,
-          'producer': _producerController.text,
-        } else if (_accountTypeController.text == 'company') ...{
-          'companyName': _companyNameController.text,
-        },
+        
+          'username': _usernameController.text,
+          'email': _emailController.text,
+          'password': _passwordController.text,
+          'accountType': _accountTypeController.text,
+          'description': _descriptionController.text,
       }),
     );
 
-    print('status ${response.statusCode}');
-    print('odpowiedź ${response.body}');
+    if (userResponse.statusCode == 200) {
+       final user = jsonDecode(userResponse.body);
+      print('userId: $user');
+      if (_accountTypeController.text == 'developer') {
+        print('Sending with userId: $user');
+        final developerResponse = await http.post(
+          Uri.parse(dotenv.env['API_URL_DEV']!),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Authorization': 'Bearer ${dotenv.env['BEARER_TOKEN']}',
+          },
+          body: jsonEncode(<String, dynamic>{
+            'data': {
+              'nick': _nickController.text,
+              'firstName': _firstNameController.text,
+              'lastName': _lastNameController.text,
+              'producer': _producerController.text,
+              'user': user['user']['id'],
 
-    if (response.statusCode == 200) {
+            },
+          
+          }),
+          
+        );
+
+        print('status ${developerResponse.statusCode}');
+        print('odpowiedź ${developerResponse.body}');
+        print('użytkownik nr ${user['user']['id']}');
+        
+      } else if (_accountTypeController.text == 'company') {
+        final companyResponse = await http.post(
+          Uri.parse(dotenv.env['API_URL_COMP']!),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Authorization': 'Bearer ${dotenv.env['BEARER_TOKEN']}',
+          },
+          body: jsonEncode(<String, dynamic>{
+            'data': {
+              'companyName': _companyNameController.text,
+              'user': user['user']['id'],
+
+            },
+          }),
+        );
+
+        print('status ${companyResponse.statusCode}');
+        print('odpowiedź ${companyResponse.body}');
+      }
+
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -68,6 +106,9 @@ class _RegisterFormState extends State<RegisterForm> {
         },
       );
     } else {
+      print('status ${userResponse.statusCode}');
+      print('odpowiedź ${userResponse.body}');
+
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -146,9 +187,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 items: <String>['developer', 'company'].map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(value == 'developer'
-                        ? 'Developer'
-                        : 'Firma'), 
+                    child: Text(value == 'developer' ? 'Developer' : 'Firma'),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -191,10 +230,11 @@ class _RegisterFormState extends State<RegisterForm> {
               ),
               TextFormField(
                 controller: _producerController,
-                decoration: const InputDecoration(labelText: 'Oferowane usługi?'),
+                decoration:
+                    const InputDecoration(labelText: 'Oferowane usługi?'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Proszę wprowadzić producenta';
+                    return 'Proszę wprowadzić oferowane usługi';
                   }
                   return null;
                 },
