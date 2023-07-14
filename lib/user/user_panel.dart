@@ -17,6 +17,7 @@ class UserPanel extends StatefulWidget {
 class _UserPanelState extends State<UserPanel> {
   Map<String, dynamic>? userData;
 
+  final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _steamReviewController = TextEditingController();
   final _metacriticReviewController = TextEditingController();
@@ -64,10 +65,17 @@ class _UserPanelState extends State<UserPanel> {
       });
     } else {
       print('Nie udało się pobrać danych użytkownika');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się pobrać danych użytkownika')),
+      );
     }
   }
 
   Future<void> _addProduct() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     final adId = userData!['accountType'] == 'developer'
         ? userData!['ad_developer']['id']
         : userData!['ad_company']['id'];
@@ -131,8 +139,14 @@ class _UserPanelState extends State<UserPanel> {
 
     if (response.statusCode == 200) {
       print('Produkt został dodany pomyślnie');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Produkt został dodany pomyślnie')),
+      );
     } else {
       print('Nie udało się dodać produktu');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się dodać produktu')),
+      );
     }
   }
 
@@ -145,168 +159,189 @@ class _UserPanelState extends State<UserPanel> {
           return AlertDialog(
             title: const Text('Dodaj produkt'),
             content: SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  TextField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(hintText: 'Tytuł'),
-                  ),
-                  TextField(
-                    controller: _steamReviewController,
-                    decoration:
-                        const InputDecoration(hintText: 'Recenzja Steam'),
-                  ),
-                  TextField(
-                    controller: _metacriticReviewController,
-                    decoration:
-                        const InputDecoration(hintText: 'Recenzja Metacritic'),
-                  ),
-                  const Text('Wybierz platformy:'),
-                  CheckboxListTile(
-                    title: const Text('GOG'),
-                    value: _isGogChecked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isGogChecked = value!;
-                      });
-                    },
-                  ),
-                  if (_isGogChecked)
-                    TextField(
-                      controller: _gogLinkController,
-                      decoration: const InputDecoration(hintText: 'Link GOG'),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: <Widget>[
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(hintText: 'Tytuł'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Proszę wprowadzić tytuł';
+                        }
+                        return null;
+                      },
                     ),
-                  CheckboxListTile(
-                    title: const Text('Nintendo'),
-                    value: _isNintendoChecked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isNintendoChecked = value!;
-                      });
-                    },
-                  ),
-                  if (_isNintendoChecked)
-                    TextField(
-                      controller: _nintendoLinkController,
+                    TextFormField(
+                      controller: _steamReviewController,
                       decoration:
-                          const InputDecoration(hintText: 'Link Nintendo'),
+                          const InputDecoration(hintText: 'Recenzja Steam'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Proszę wprowadzić recenzję Steam';
+                        }
+                        return null;
+                      },
                     ),
-                  CheckboxListTile(
-                    title: const Text('PS4'),
-                    value: _isPs4Checked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isPs4Checked = value!;
-                      });
-                    },
-                  ),
-                  if (_isPs4Checked)
-                    TextField(
-                      controller: _ps4LinkController,
-                      decoration: const InputDecoration(hintText: 'Link PS4'),
-                    ),
-                  CheckboxListTile(
-                    title: const Text('PS5'),
-                    value: _isPs5Checked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isPs5Checked = value!;
-                      });
-                    },
-                  ),
-                  if (_isPs5Checked)
-                    TextField(
-                      controller: _ps5LinkController,
-                      decoration: const InputDecoration(hintText: 'Link PS5'),
-                    ),
-                  CheckboxListTile(
-                    title: const Text('PS VR'),
-                    value: _isPsVrChecked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isPsVrChecked = value!;
-                      });
-                    },
-                  ),
-                  if (_isPsVrChecked)
-                    TextField(
-                      controller: _psVrLinkController,
-                      decoration: const InputDecoration(hintText: 'Link PS VR'),
-                    ),
-                  CheckboxListTile(
-                    title: const Text('Steam VR'),
-                    value: _isSteamVrChecked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isSteamVrChecked = value!;
-                      });
-                    },
-                  ),
-                  if (_isSteamVrChecked)
-                    TextField(
-                      controller: _steamVrLinkController,
+                    TextFormField(
+                      controller: _metacriticReviewController,
                       decoration:
-                          const InputDecoration(hintText: 'Link Steam VR'),
+                          const InputDecoration(hintText: 'Recenzja Metacritic'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Proszę wprowadzić recenzję Metacritic';
+                        }
+                        return null;
+                      },
                     ),
-                  CheckboxListTile(
-                    title: const Text('VR'),
-                    value: _isVrChecked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isVrChecked = value!;
-                      });
-                    },
-                  ),
-                  if (_isVrChecked)
-                    TextField(
-                      controller: _vrLinkController,
-                      decoration: const InputDecoration(hintText: 'Link VR'),
+                    const Text('Wybierz platformy:'),
+                    CheckboxListTile(
+                      title: const Text('GOG'),
+                      value: _isGogChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isGogChecked = value!;
+                        });
+                      },
                     ),
-                  CheckboxListTile(
-                    title: const Text('Deck'),
-                    value: _isDeckChecked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isDeckChecked = value!;
-                      });
-                    },
-                  ),
-                  if (_isDeckChecked)
-                    TextField(
-                      controller: _deckLinkController,
-                      decoration: const InputDecoration(hintText: 'Link Deck'),
+                    if (_isGogChecked)
+                      TextField(
+                        controller: _gogLinkController,
+                        decoration: const InputDecoration(hintText: 'Link GOG'),
+                      ),
+                    CheckboxListTile(
+                      title: const Text('Nintendo'),
+                      value: _isNintendoChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isNintendoChecked = value!;
+                        });
+                      },
                     ),
-                  CheckboxListTile(
-                    title: const Text('Xbox One'),
-                    value: _isOneChecked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isOneChecked = value!;
-                      });
-                    },
-                  ),
-                  if (_isOneChecked)
-                    TextField(
-                      controller: _oneLinkController,
-                      decoration:
-                          const InputDecoration(hintText: 'Link Xbox One'),
+                    if (_isNintendoChecked)
+                      TextField(
+                        controller: _nintendoLinkController,
+                        decoration:
+                            const InputDecoration(hintText: 'Link Nintendo'),
+                      ),
+                    CheckboxListTile(
+                      title: const Text('PS4'),
+                      value: _isPs4Checked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isPs4Checked = value!;
+                        });
+                      },
                     ),
-                  CheckboxListTile(
-                    title: const Text('Xbox Series'),
-                    value: _isSeriesChecked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isSeriesChecked = value!;
-                      });
-                    },
-                  ),
-                  if (_isSeriesChecked)
-                    TextField(
-                      controller: _seriesLinkController,
-                      decoration:
-                          const InputDecoration(hintText: 'Link Xbox Series'),
+                    if (_isPs4Checked)
+                      TextField(
+                        controller: _ps4LinkController,
+                        decoration: const InputDecoration(hintText: 'Link PS4'),
+                      ),
+                    CheckboxListTile(
+                      title: const Text('PS5'),
+                      value: _isPs5Checked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isPs5Checked = value!;
+                        });
+                      },
                     ),
-                ],
+                    if (_isPs5Checked)
+                      TextField(
+                        controller: _ps5LinkController,
+                        decoration: const InputDecoration(hintText: 'Link PS5'),
+                      ),
+                    CheckboxListTile(
+                      title: const Text('PS VR'),
+                      value: _isPsVrChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isPsVrChecked = value!;
+                        });
+                      },
+                    ),
+                    if (_isPsVrChecked)
+                      TextField(
+                        controller: _psVrLinkController,
+                        decoration: const InputDecoration(hintText: 'Link PS VR'),
+                      ),
+                    CheckboxListTile(
+                      title: const Text('Steam VR'),
+                      value: _isSteamVrChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isSteamVrChecked = value!;
+                        });
+                      },
+                    ),
+                    if (_isSteamVrChecked)
+                      TextField(
+                        controller: _steamVrLinkController,
+                        decoration:
+                            const InputDecoration(hintText: 'Link Steam VR'),
+                      ),
+                    CheckboxListTile(
+                      title: const Text('VR'),
+                      value: _isVrChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isVrChecked = value!;
+                        });
+                      },
+                    ),
+                    if (_isVrChecked)
+                      TextField(
+                        controller: _vrLinkController,
+                        decoration: const InputDecoration(hintText: 'Link VR'),
+                      ),
+                    CheckboxListTile(
+                      title: const Text('Deck'),
+                      value: _isDeckChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isDeckChecked = value!;
+                        });
+                      },
+                    ),
+                    if (_isDeckChecked)
+                      TextField(
+                        controller: _deckLinkController,
+                        decoration: const InputDecoration(hintText: 'Link Deck'),
+                      ),
+                    CheckboxListTile(
+                      title: const Text('Xbox One'),
+                      value: _isOneChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isOneChecked = value!;
+                        });
+                      },
+                    ),
+                    if (_isOneChecked)
+                      TextField(
+                        controller: _oneLinkController,
+                        decoration:
+                            const InputDecoration(hintText: 'Link Xbox One'),
+                      ),
+                    CheckboxListTile(
+                      title: const Text('Xbox Series'),
+                      value: _isSeriesChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isSeriesChecked = value!;
+                        });
+                      },
+                    ),
+                    if (_isSeriesChecked)
+                      TextField(
+                        controller: _seriesLinkController,
+                        decoration:
+                            const InputDecoration(hintText: 'Link Xbox Series'),
+                      ),
+                  ],
+                ),
               ),
             ),
             actions: <Widget>[
