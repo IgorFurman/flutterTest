@@ -67,72 +67,74 @@ class _UserPanelState extends State<UserPanel> {
     }
   }
 
-Future<void> _addProduct() async {
-  final key =
-      userData!['accountType'] == 'developer' ? 'developer' : 'company';
-  final requestBody = jsonEncode(<String, dynamic>{
-    'data': {
-      key: widget.userId,
-      'title': _titleController.text,
-      'steamReview': _steamReviewController.text,
-      'metacriticReview': _metacriticReviewController.text,
-      'gog': {
-        'gog': _isGogChecked,
-        'gog_link': _isGogChecked ? _gogLinkController.text : null,
+  Future<void> _addProduct() async {
+    final adId = userData!['accountType'] == 'developer'
+        ? userData!['ad_developer']['id']
+        : userData!['ad_company']['id'];
+    final requestBody = jsonEncode(<String, dynamic>{
+      'data': {
+        if (userData!['accountType'] == 'developer') 'ad_developer': adId,
+        if (userData!['accountType'] == 'company') 'ad_company': adId,
+        'title': _titleController.text,
+        'steamReview': _steamReviewController.text,
+        'metacriticReview': _metacriticReviewController.text,
+        'gog': {
+          'gog': _isGogChecked,
+          'gog_link': _isGogChecked ? _gogLinkController.text : null,
+        },
+        'nintendo': {
+          'nintendo': _isNintendoChecked,
+          'nintendo_link':
+              _isNintendoChecked ? _nintendoLinkController.text : null,
+        },
+        'ps': {
+          'ps4': _isPs4Checked,
+          'ps4_link': _isPs4Checked ? _ps4LinkController.text : null,
+          'ps5': _isPs5Checked,
+          'ps5_link': _isPs5Checked ? _ps5LinkController.text : null,
+          'ps_vr': _isPsVrChecked,
+          'ps_vr_link': _isPsVrChecked ? _psVrLinkController.text : null,
+        },
+        'steam': {
+          'deck': _isDeckChecked,
+          'deck_link': _isDeckChecked ? _deckLinkController.text : null,
+          'steam_vr': _isSteamVrChecked,
+          'steam_vr_link':
+              _isSteamVrChecked ? _steamVrLinkController.text : null,
+        },
+        'VR': {
+          'VR': _isVrChecked,
+          'VR_link': _isVrChecked ? _vrLinkController.text : null,
+        },
+        'xbox': {
+          'one': _isOneChecked,
+          'one_link': _isOneChecked ? _oneLinkController.text : null,
+          'series': _isSeriesChecked,
+          'series_link': _isSeriesChecked ? _seriesLinkController.text : null,
+        },
+      }
+    });
+
+    print('Request body: $requestBody');
+
+    final response = await http.post(
+      Uri.parse('${dotenv.env['API_URL_PRODUCT']}'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer ${widget.token}',
       },
-      'nintendo': {
-        'nintendo': _isNintendoChecked,
-        'nintendo_link': _isNintendoChecked ? _nintendoLinkController.text : null,
-      },
-      'ps': {
-        'ps4': _isPs4Checked,
-        'ps4_link': _isPs4Checked ? _ps4LinkController.text : null,
-        'ps5': _isPs5Checked,
-        'ps5_link': _isPs5Checked ? _ps5LinkController.text : null,
-        'ps_vr': _isPsVrChecked,
-        'ps_vr_link': _isPsVrChecked ? _psVrLinkController.text : null,
-      },
-      'steam': {
-        'deck': _isDeckChecked,
-        'deck_link': _isDeckChecked ? _deckLinkController.text : null,
-        'steam_vr': _isSteamVrChecked,
-        'steam_vr_link': _isSteamVrChecked ? _steamVrLinkController.text : null,
-      },
-      'VR': {
-        'VR': _isVrChecked,
-        'VR_link': _isVrChecked ? _vrLinkController.text : null,
-      },
-      'xbox': {
-        'one': _isOneChecked,
-        'one_link': _isOneChecked ? _oneLinkController.text : null,
-        'series': _isSeriesChecked,
-        'series_link': _isSeriesChecked ? _seriesLinkController.text : null,
-      },
+      body: requestBody,
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      print('Produkt został dodany pomyślnie');
+    } else {
+      print('Nie udało się dodać produktu');
     }
-  });
-
-  print('Request body: $requestBody');
-
-  final response = await http.post(
-    Uri.parse('${dotenv.env['API_URL_PRODUCT']}'),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Authorization': 'Bearer ${widget.token}',
-    },
-    body: requestBody,
-  );
-
-  print('Response status: ${response.statusCode}');
-  print('Response body: ${response.body}');
-
-  if (response.statusCode == 200) {
-    print('Produkt został dodany pomyślnie');
-  } else {
-    print('Nie udało się dodać produktu');
   }
-}
-
-
 
   void _showAddProductDialog(BuildContext context) {
     showDialog(
@@ -381,13 +383,16 @@ Future<void> _addProduct() async {
                     ] else if (userData!['accountType'] == 'company' &&
                         userData!['ad_company'] != null) ...[
                       ListTile(
-                        title: const Text('Company Name'),
+                        title: const Text('Nazwa firmy'),
                         subtitle: Text(userData!['ad_company']['companyName']),
                       ),
                       ListTile(
-                        title: const Text('Sub Users'),
+                        title: const Text('Liczba subużytkowników'),
                         subtitle: Text(
-                            userData!['ad_company']['subUsers'].toString()),
+                          userData!['ad_company']['subUsers'] != null
+                              ? userData!['ad_company']['subUsers'].toString()
+                              : '0',
+                        ),
                       ),
                     ],
                   ],
