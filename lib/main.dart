@@ -41,8 +41,8 @@ class LoginPage extends StatelessWidget {
         onPressed: () {
           Navigator.pushNamed(context, '/register');
         },
-        child: const Icon(Icons.navigate_next),
         backgroundColor: Colors.blue,
+        child: const Icon(Icons.navigate_next),
       ),
     );
   }
@@ -62,8 +62,8 @@ class RegisterPage extends StatelessWidget {
         onPressed: () {
           Navigator.pop(context);
         },
-        child: const Icon(Icons.navigate_before),
         backgroundColor: Colors.blue,
+        child: const Icon(Icons.navigate_before),
       ),
     );
   }
