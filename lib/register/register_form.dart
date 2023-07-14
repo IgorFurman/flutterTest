@@ -30,17 +30,16 @@ class _RegisterFormState extends State<RegisterForm> {
         'Authorization': 'Bearer ${dotenv.env['BEARER_TOKEN']}',
       },
       body: jsonEncode(<String, dynamic>{
-        
-          'username': _usernameController.text,
-          'email': _emailController.text,
-          'password': _passwordController.text,
-          'accountType': _accountTypeController.text,
-          'description': _descriptionController.text,
+        'username': _usernameController.text,
+        'email': _emailController.text,
+        'password': _passwordController.text,
+        'accountType': _accountTypeController.text,
+        'description': _descriptionController.text,
       }),
     );
 
     if (userResponse.statusCode == 200) {
-       final user = jsonDecode(userResponse.body);
+      final user = jsonDecode(userResponse.body);
       print('userId: $user');
       if (_accountTypeController.text == 'developer') {
         print('Sending with userId: $user');
@@ -57,17 +56,13 @@ class _RegisterFormState extends State<RegisterForm> {
               'lastName': _lastNameController.text,
               'producer': _producerController.text,
               'user': user['user']['id'],
-
             },
-          
           }),
-          
         );
 
         print('status ${developerResponse.statusCode}');
         print('odpowiedź ${developerResponse.body}');
         print('użytkownik nr ${user['user']['id']}');
-        
       } else if (_accountTypeController.text == 'company') {
         final companyResponse = await http.post(
           Uri.parse(dotenv.env['API_URL_COMP']!),
@@ -79,7 +74,6 @@ class _RegisterFormState extends State<RegisterForm> {
             'data': {
               'companyName': _companyNameController.text,
               'user': user['user']['id'],
-
             },
           }),
         );
@@ -130,6 +124,21 @@ class _RegisterFormState extends State<RegisterForm> {
   }
 
   @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _accountTypeController.dispose();
+    _descriptionController.dispose();
+    _nickController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _producerController.dispose();
+    _companyNameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -137,7 +146,7 @@ class _RegisterFormState extends State<RegisterForm> {
         key: _formKey,
         child: Column(
           children: <Widget>[
-            // Common fields
+      
             TextFormField(
               controller: _usernameController,
               decoration: const InputDecoration(labelText: 'Nazwa użytkownika'),
@@ -155,17 +164,33 @@ class _RegisterFormState extends State<RegisterForm> {
                 if (value == null || value.isEmpty) {
                   return 'Proszę wprowadzić adres email';
                 }
-                return null;
+
+                String pattern =
+                    r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+
+                RegExp regex = RegExp(pattern);
+                if (!regex.hasMatch(value))
+                  return 'Wprowadź prawidłowy adres email';
+                else
+                  return null;
               },
             ),
             TextFormField(
               controller: _passwordController,
               decoration: const InputDecoration(labelText: 'Hasło'),
+              obscureText: true, 
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Proszę wprowadzić hasło';
                 }
-                return null;
+                String pattern =
+                    r'^(?=.*[0-9]+.*)(?=.*[a-zA-Z]+.*)[0-9a-zA-Z]{8,}$';
+
+                RegExp regex = RegExp(pattern);
+                if (!regex.hasMatch(value))
+                  return 'Hasło musi zawierać przynajmniej 8 znaków, w tym przynajmniej jedną dużą literę, jedną małą literę i jedną cyfrę';
+                else
+                  return null;
               },
             ),
             TextFormField(
