@@ -1,4 +1,4 @@
-package com.example.port_me_front
+package com.example.test
 
 import io.flutter.embedding.android.FlutterActivity
 
